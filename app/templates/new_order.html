@@ -122,8 +122,10 @@
                         slotContainer.innerHTML = ''; // Clear the "loading" message
                         
                         if (slots.length === 0) {
-                            slotPlaceholder.textContent = 'No available slots for this partner today.';
-                            slotContainer.appendChild(slotPlaceholder);
+                            let noSlotsMsg = document.createElement('div');
+                            noSlotsMsg.classList.add('list-group-item', 'text-muted');
+                            noSlotsMsg.textContent = 'No available slots for this partner on the selected date.';
+                            slotContainer.appendChild(noSlotsMsg);
                             return;
                         }
 
@@ -167,8 +169,10 @@
                         // Handle any errors (e.g., server down, partner has no slots)
                         console.error('Error fetching time slots:', error);
                         slotContainer.innerHTML = '';
-                        slotPlaceholder.textContent = 'Could not load slots. Please try again later.';
-                        slotContainer.appendChild(slotPlaceholder);
+                        let errorMsg = document.createElement('div');
+                        errorMsg.classList.add('list-group-item', 'text-danger');
+                        errorMsg.textContent = 'Could not load slots. Please try again later.';
+                        slotContainer.appendChild(errorMsg);
                     });
             }
             

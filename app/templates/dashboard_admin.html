@@ -104,12 +104,18 @@
 // Search users
 function searchUsers() {
   const search = document.getElementById('searchUsers').value.toLowerCase();
-  const rows = document.querySelectorAll('h2:contains("Users") + div + div table tbody tr');
-  const userRows = document.querySelectorAll('table')[0].querySelectorAll('tbody tr');
+  const tables = document.querySelectorAll('table');
+  const userTable = tables[0]; // First table is users
+  
+  if (!userTable) return;
+  
+  const userRows = userTable.querySelectorAll('tbody tr');
   
   userRows.forEach(row => {
     const username = row.cells[1].textContent.toLowerCase();
-    const role = row.cells[2].querySelector('select').value.toLowerCase();
+    const roleCell = row.cells[2];
+    const roleSelect = roleCell.querySelector('select');
+    const role = roleSelect ? roleSelect.value.toLowerCase() : '';
     
     if (username.includes(search) || role.includes(search)) {
       row.style.display = '';
@@ -122,7 +128,12 @@ function searchUsers() {
 // Search partners
 function searchPartners() {
   const search = document.getElementById('searchPartners').value.toLowerCase();
-  const partnerRows = document.querySelectorAll('table')[1].querySelectorAll('tbody tr');
+  const tables = document.querySelectorAll('table');
+  const partnerTable = tables[1]; // Second table is partners
+  
+  if (!partnerTable) return;
+  
+  const partnerRows = partnerTable.querySelectorAll('tbody tr');
   
   partnerRows.forEach(row => {
     const platform = row.cells[1].textContent.toLowerCase();
@@ -137,11 +148,14 @@ function searchPartners() {
   });
 }
 
-if (document.getElementById('searchUsers')) {
-  document.getElementById('searchUsers').addEventListener('input', searchUsers);
-}
-if (document.getElementById('searchPartners')) {
-  document.getElementById('searchPartners').addEventListener('input', searchPartners);
-}
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function() {
+  if (document.getElementById('searchUsers')) {
+    document.getElementById('searchUsers').addEventListener('input', searchUsers);
+  }
+  if (document.getElementById('searchPartners')) {
+    document.getElementById('searchPartners').addEventListener('input', searchPartners);
+  }
+});
 </script>
 {% endblock %}
