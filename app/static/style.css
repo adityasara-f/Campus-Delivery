@@ -46,11 +46,9 @@ body {
 }
 
 .brand-logo {
-  background: white;
-  color: var(--primary-color);
-  padding: 0.25rem 0.75rem;
-  border-radius: 8px;
+  color: #ffffff;
   font-weight: 800;
+  padding: 0;
 }
 
 .app-navbar .nav-link {
@@ -241,6 +239,10 @@ body {
 }
 
 /* ==================== Forms ==================== */
+.role-select {
+  min-width: 160px;
+  padding-right: 2rem !important; /* ensure space for dropdown arrow */
+}
 .form-control, .form-select {
   border: 1px solid var(--border-color) !important;
   border-radius: 8px !important;

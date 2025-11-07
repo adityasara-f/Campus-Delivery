@@ -10,7 +10,7 @@
           {{ form.hidden_tag() }}
           <div class="mb-3">
             {{ form.email.label(class_='form-label') }}
-            {{ form.email(class_='form-control', placeholder='you@example.com') }}
+            {{ form.email(class_='form-control', placeholder='Email or username') }}
             {% for e in form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
           </div>
           <div class="mb-3">

@@ -21,7 +21,7 @@
             <form method="post" class="d-flex align-items-center gap-2">
               <input type="hidden" name="action" value="set_role" />
               <input type="hidden" name="user_id" value="{{ u.id }}" />
-              <select name="role" class="form-select form-select-sm" style="width:auto">
+              <select name="role" class="form-select form-select-sm role-select">
                 {% for r in ['user','partner','admin'] %}
                   <option value="{{ r }}" {% if u.role==r %}selected{% endif %}>{{ r|capitalize }}</option>
                 {% endfor %}

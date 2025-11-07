@@ -29,9 +29,12 @@ def signin():
         return redirect(url_for('main.dashboard'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data.lower()).first()
+        ident = form.email.data.strip()
+        user = User.query.filter_by(email=ident.lower()).first()
+        if not user:
+            user = User.query.filter_by(username=ident).first()
         if not user or not check_password_hash(user.password_hash, form.password.data):
-            flash('Invalid email or password', 'warning')
+            flash('Invalid email/username or password', 'warning')
             return render_template('signin.html', form=form)
         login_user(user, remember=form.remember.data)
         return redirect(url_for('main.dashboard'))
