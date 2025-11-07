@@ -14,7 +14,7 @@
           <div class="col-md-3">
             <input type="text" id="searchOrderId" class="form-control" placeholder="🔍 Search by order ID...">
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
             <select id="filterDay" class="form-select">
               <option value="">All Days</option>
               <option value="Monday">Monday</option>
@@ -27,6 +27,13 @@
             </select>
           </div>
           <div class="col-md-2">
+            <select id="filterType" class="form-select">
+              <option value="">All Types</option>
+              <option value="Pickup">Pickup</option>
+              <option value="Return">Return</option>
+            </select>
+          </div>
+          <div class="col-md-1">
             <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button>
           </div>
         </div>
@@ -155,12 +162,14 @@ function filterOrders() {
   const studentSearch = document.getElementById('searchStudent');
   const orderIdSearch = document.getElementById('searchOrderId');
   const dayFilter = document.getElementById('filterDay');
+  const typeFilter = document.getElementById('filterType');
   
-  if (!studentSearch || !orderIdSearch || !dayFilter) return;
+  if (!studentSearch || !orderIdSearch || !dayFilter || !typeFilter) return;
   
   const studentValue = studentSearch.value.toLowerCase();
   const orderIdValue = orderIdSearch.value.toLowerCase();
   const dayValue = dayFilter.value;
+  const typeValue = typeFilter.value;
   
   const tables = document.querySelectorAll('table');
   if (!tables || tables.length === 0) return;
@@ -174,13 +183,15 @@ function filterOrders() {
     const student = row.cells[2].textContent.toLowerCase();
     const regNo = row.cells[3].textContent.toLowerCase();
     const orderId = row.cells[0].textContent.toLowerCase();
+    const orderType = row.cells[5].textContent;
     const slotText = row.cells[7].textContent;
     
     const matchesStudent = !studentValue || student.includes(studentValue) || regNo.includes(studentValue);
     const matchesOrderId = !orderIdValue || orderId.includes(orderIdValue);
     const matchesDay = !dayValue || slotText.includes(dayValue);
+    const matchesType = !typeValue || orderType === typeValue;
     
-    if (matchesStudent && matchesOrderId && matchesDay) {
+    if (matchesStudent && matchesOrderId && matchesDay && matchesType) {
       row.style.display = '';
     } else {
       row.style.display = 'none';
@@ -192,10 +203,12 @@ function clearFilters() {
   const studentSearch = document.getElementById('searchStudent');
   const orderIdSearch = document.getElementById('searchOrderId');
   const dayFilter = document.getElementById('filterDay');
+  const typeFilter = document.getElementById('filterType');
   
   if (studentSearch) studentSearch.value = '';
   if (orderIdSearch) orderIdSearch.value = '';
   if (dayFilter) dayFilter.value = '';
+  if (typeFilter) typeFilter.value = '';
   
   filterOrders();
 }
@@ -205,6 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const studentSearch = document.getElementById('searchStudent');
   const orderIdSearch = document.getElementById('searchOrderId');
   const dayFilter = document.getElementById('filterDay');
+  const typeFilter = document.getElementById('filterType');
   
   if (studentSearch) {
     studentSearch.addEventListener('input', filterOrders);
@@ -214,6 +228,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   if (dayFilter) {
     dayFilter.addEventListener('change', filterOrders);
+  }
+  if (typeFilter) {
+    typeFilter.addEventListener('change', filterOrders);
   }
 });
 </script>
