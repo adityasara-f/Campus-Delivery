@@ -245,12 +245,27 @@ def admin_dashboard():
 @login_required
 def api_get_slots_by_id(partner_id):
     partner = Partner.query.get_or_404(partner_id)
-    today_str = datetime.now().strftime('%A')
-    slots = TimeSlot.query.filter_by(partner_id=partner.id, day_of_week=today_str).all()
+    
+    # Get selected date from query parameter, default to today
+    date_str = request.args.get('date')
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            selected_date = datetime.now().date()
+    else:
+        selected_date = datetime.now().date()
+    
+    day_of_week = selected_date.strftime('%A')
+    slots = TimeSlot.query.filter_by(partner_id=partner.id, day_of_week=day_of_week).all()
 
     available_slots = []
     for slot in slots:
-        booked_count = Order.query.filter_by(time_slot_id=slot.id).count()
+        # Count bookings for this specific slot on this specific date
+        booked_count = Order.query.filter_by(
+            time_slot_id=slot.id,
+            booking_date=selected_date
+        ).count()
         if booked_count < slot.max_capacity:
             available_slots.append({
                 'id': slot.id,
@@ -268,12 +283,19 @@ def order_new():
     if request.method == 'POST':
         partner_id = request.form.get('partner_id')
         time_slot_id = request.form.get('time_slot_id')
+        booking_date_str = request.form.get('booking_date')
         order_platform = None  # optional; could infer from partner
         order_id_text = request.form.get('order_id_text')
         college_reg_no = request.form.get('college_reg_no')
         name = request.form.get('name')
         phone = request.form.get('phone')
         type_ = request.form.get('type')
+        
+        # Parse booking date
+        try:
+            booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d').date() if booking_date_str else datetime.now().date()
+        except ValueError:
+            booking_date = datetime.now().date()
 
         # Resolve partner
         partner = Partner.query.get(int(partner_id)) if partner_id else None
@@ -290,10 +312,13 @@ def order_new():
             flash('Invalid time slot selection', 'warning')
             return redirect(url_for('main.order_new'))
 
-        # Capacity check
-        current_count = Order.query.filter_by(time_slot_id=slot.id).count()
+        # Capacity check for specific date
+        current_count = Order.query.filter_by(
+            time_slot_id=slot.id,
+            booking_date=booking_date
+        ).count()
         if current_count >= slot.max_capacity:
-            flash('Selected time slot is full', 'warning')
+            flash('Selected time slot is full for that date', 'warning')
             return redirect(url_for('main.order_new'))
 
         # Basic validation
@@ -313,6 +338,7 @@ def order_new():
             phone=phone,
             type=type_,
             status='Booked',
+            booking_date=booking_date,
         )
         db.session.add(order)
         db.session.commit()

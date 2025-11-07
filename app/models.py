@@ -81,6 +81,7 @@ class Order(db.Model):
     phone = db.Column(db.String(30), nullable=False)
     type = db.Column('type', db.String(20), nullable=False)  # 'Pickup' | 'Return'
     status = db.Column(db.String(20), nullable=False, default='Booked')  # 'Booked' | 'Completed' | 'Cancelled'
+    booking_date = db.Column(db.Date, nullable=True)  # Date for which booking is made
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships

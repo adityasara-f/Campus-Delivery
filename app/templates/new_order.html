@@ -4,7 +4,7 @@
     <p>Please select a partner and time slot for your pickup or return.</p>
 
     <!-- We'll use WTForms for this eventually, but this shows the concept -->
-    <form method="POST" action="{{ url_for('main.order_new') }}"> <!-- We'll build the POST logic later -->
+    <form method="POST" action="{{ url_for('main.order_new') }}">
         
         <!-- STEP 1: Select Partner -->
         <div class="mb-3">
@@ -16,10 +16,16 @@
                 {% endfor %}
             </select>
         </div>
-
-        <!-- STEP 2: Select Time Slot (This will be populated by JavaScript) -->
+        
+        <!-- STEP 1.5: Select Date -->
         <div class="mb-3">
-            <label class="form-label"><b>Step 2: Select a Time Slot for Today</b></label>
+            <label for="bookingDate" class="form-label"><b>Step 2: Select Booking Date</b></label>
+            <input type="date" class="form-control" id="bookingDate" name="booking_date" required>
+        </div>
+
+        <!-- STEP 3: Select Time Slot (This will be populated by JavaScript) -->
+        <div class="mb-3">
+            <label class="form-label"><b>Step 3: Select a Time Slot</b></label>
             <div id="timeSlotContainer" class="list-group">
                 <!-- JavaScript will inject slots here -->
                 <div class="list-group-item text-muted" id="slotPlaceholder">
@@ -70,15 +76,26 @@
         document.addEventListener('DOMContentLoaded', function() {
             
             const partnerSelect = document.getElementById('partnerSelect');
+            const bookingDateInput = document.getElementById('bookingDate');
             const slotContainer = document.getElementById('timeSlotContainer');
             const slotPlaceholder = document.getElementById('slotPlaceholder');
             const orderDetails = document.getElementById('orderDetails');
             const hiddenSlotInput = document.getElementById('time_slot_id');
             const selectedSlotText = document.getElementById('selectedSlotText');
-
-            // Listen for a change on the "Partner" dropdown
-            partnerSelect.addEventListener('change', function() {
-                const partnerId = this.value;
+            
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            bookingDateInput.setAttribute('min', today);
+            bookingDateInput.value = today;
+            
+            // Function to load slots
+            function loadSlots() {
+                const partnerId = partnerSelect.value;
+                const selectedDate = bookingDateInput.value;
+                
+                if (!partnerId || partnerId === 'Choose a delivery partner...' || !selectedDate) {
+                    return;
+                }
                 
                 // 1. Clear old slots and show a loading message
                 slotContainer.innerHTML = ''; // Clear existing slots
@@ -90,8 +107,8 @@
                 // Hide the order details form
                 orderDetails.style.display = 'none';
 
-                // 2. This is the "high class" part: Fetch data from our API
-                fetch(`/api/get_slots/${partnerId}`)
+                // 2. Fetch data from our API with selected date
+                fetch(`/api/get_slots/${partnerId}?date=${selectedDate}`)
                     .then(response => {
                         // Check if the network response is ok
                         if (!response.ok) {
@@ -153,7 +170,11 @@
                         slotPlaceholder.textContent = 'Could not load slots. Please try again later.';
                         slotContainer.appendChild(slotPlaceholder);
                     });
-            });
+            }
+            
+            // Listen for changes on both Partner and Date
+            partnerSelect.addEventListener('change', loadSlots);
+            bookingDateInput.addEventListener('change', loadSlots);
         });
     </script>
 {% endblock content %}

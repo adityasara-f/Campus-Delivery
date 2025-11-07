@@ -4,6 +4,35 @@
 <h2 class="mb-3">Incoming Orders</h2>
 {% if partner %}
   {% if orders and orders|length %}
+    <!-- Search and Filter -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <input type="text" id="searchStudent" class="form-control" placeholder="🔍 Search by student name...">
+          </div>
+          <div class="col-md-3">
+            <input type="text" id="searchOrderId" class="form-control" placeholder="🔍 Search by order ID...">
+          </div>
+          <div class="col-md-3">
+            <select id="filterDay" class="form-select">
+              <option value="">All Days</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+              <option value="Sunday">Sunday</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <div class="table-responsive mb-4">
       <table class="table table-striped align-middle">
         <thead>
@@ -120,4 +149,44 @@
 {% else %}
   <div class="alert alert-warning">Partner profile not found.</div>
 {% endif %}
+
+<script>
+function filterOrders() {
+  const studentSearch = document.getElementById('searchStudent').value.toLowerCase();
+  const orderIdSearch = document.getElementById('searchOrderId').value.toLowerCase();
+  const dayFilter = document.getElementById('filterDay').value;
+  
+  const rows = document.querySelectorAll('table tbody tr');
+  
+  rows.forEach(row => {
+    const student = row.cells[2].textContent.toLowerCase();
+    const regNo = row.cells[3].textContent.toLowerCase();
+    const orderId = row.cells[0].textContent.toLowerCase();
+    const slotText = row.cells[7].textContent;
+    
+    const matchesStudent = !studentSearch || student.includes(studentSearch) || regNo.includes(studentSearch);
+    const matchesOrderId = !orderIdSearch || orderId.includes(orderIdSearch);
+    const matchesDay = !dayFilter || slotText.includes(dayFilter);
+    
+    if (matchesStudent && matchesOrderId && matchesDay) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+function clearFilters() {
+  document.getElementById('searchStudent').value = '';
+  document.getElementById('searchOrderId').value = '';
+  document.getElementById('filterDay').value = '';
+  filterOrders();
+}
+
+if (document.getElementById('searchStudent')) {
+  document.getElementById('searchStudent').addEventListener('input', filterOrders);
+  document.getElementById('searchOrderId').addEventListener('input', filterOrders);
+  document.getElementById('filterDay').addEventListener('change', filterOrders);
+}
+</script>
 {% endblock %}

@@ -2,7 +2,10 @@
 {% block title %}Admin Dashboard | Campus Delivery{% endblock %}
 {% block content %}
 <h2 class="mb-3">Users</h2>
-<div class="table-responsive mb-4">
+<div class="mb-3">
+  <input type="text" id="searchUsers" class="form-control" placeholder="🔍 Search users by username or role...">
+</div>
+<div class="table-responsive mb-4" style="max-height: 500px; overflow-y: auto;">
   <table class="table table-striped align-middle">
     <thead>
       <tr>
@@ -43,7 +46,10 @@
 </div>
 
 <h2 class="mb-3">Partners</h2>
-<div class="table-responsive mb-4">
+<div class="mb-3">
+  <input type="text" id="searchPartners" class="form-control" placeholder="🔍 Search partners by name or email...">
+</div>
+<div class="table-responsive mb-4" style="max-height: 400px; overflow-y: auto;">
   <table class="table table-striped align-middle">
     <thead>
       <tr>
@@ -93,4 +99,49 @@
     </form>
   </div>
 </div>
+
+<script>
+// Search users
+function searchUsers() {
+  const search = document.getElementById('searchUsers').value.toLowerCase();
+  const rows = document.querySelectorAll('h2:contains("Users") + div + div table tbody tr');
+  const userRows = document.querySelectorAll('table')[0].querySelectorAll('tbody tr');
+  
+  userRows.forEach(row => {
+    const username = row.cells[1].textContent.toLowerCase();
+    const role = row.cells[2].querySelector('select').value.toLowerCase();
+    
+    if (username.includes(search) || role.includes(search)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+// Search partners
+function searchPartners() {
+  const search = document.getElementById('searchPartners').value.toLowerCase();
+  const partnerRows = document.querySelectorAll('table')[1].querySelectorAll('tbody tr');
+  
+  partnerRows.forEach(row => {
+    const platform = row.cells[1].textContent.toLowerCase();
+    const email = row.cells[2].textContent.toLowerCase();
+    const username = row.cells[3].textContent.toLowerCase();
+    
+    if (platform.includes(search) || email.includes(search) || username.includes(search)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+if (document.getElementById('searchUsers')) {
+  document.getElementById('searchUsers').addEventListener('input', searchUsers);
+}
+if (document.getElementById('searchPartners')) {
+  document.getElementById('searchPartners').addEventListener('input', searchPartners);
+}
+</script>
 {% endblock %}
