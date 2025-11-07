@@ -1,0 +1,68 @@
+﻿{% extends 'base.html' %}
+{% block title %}Login | CDO{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Login</h5>
+        <form method="post" action="{{ url_for('main.login') }}">
+          {{ login_form.hidden_tag() }}
+          <div class="mb-3">
+            {{ login_form.email.label(class_='form-label') }}
+            {{ login_form.email(class_='form-control', placeholder='you@example.com') }}
+            {% for e in login_form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ login_form.password.label(class_='form-label') }}
+            {{ login_form.password(class_='form-control') }}
+            {% for e in login_form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="form-check mb-3">
+            {{ login_form.remember(class_='form-check-input', id='rememberMe') }}
+            <label class="form-check-label" for="rememberMe">Remember me</label>
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+          <a class="btn btn-link" href="{{ url_for('main.reset_request') }}">Forgot password?</a>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Sign Up</h5>
+        <form method="post" action="{{ url_for('main.signup') }}">
+          {{ signup_form.hidden_tag() }}
+          <div class="mb-3">
+            {{ signup_form.username.label(class_='form-label') }}
+            {{ signup_form.username(class_='form-control', placeholder='25BCE1234') }}
+            {% for e in signup_form.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ signup_form.email.label(class_='form-label') }}
+            {{ signup_form.email(class_='form-control', placeholder='you@example.com') }}
+            {% for e in signup_form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ signup_form.password.label(class_='form-label') }}
+            {{ signup_form.password(class_='form-control') }}
+            {% for e in signup_form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ signup_form.confirm_password.label(class_='form-label') }}
+            {{ signup_form.confirm_password(class_='form-control') }}
+            {% for e in signup_form.confirm_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ signup_form.role.label(class_='form-label') }}
+            {{ signup_form.role(class_='form-select') }}
+            {% for e in signup_form.role.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <button type="submit" class="btn btn-success">Create Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

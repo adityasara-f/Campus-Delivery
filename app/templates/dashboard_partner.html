@@ -1,0 +1,123 @@
+﻿{% extends 'base.html' %}
+{% block title %}Partner Dashboard | CDO{% endblock %}
+{% block content %}
+<h2 class="mb-3">Incoming Orders</h2>
+{% if partner %}
+  {% if orders and orders|length %}
+    <div class="table-responsive mb-4">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Created</th>
+            <th>Student</th>
+            <th>Reg No</th>
+            <th>Phone</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Slot</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}
+            <tr>
+              <td>{{ o.id }}</td>
+              <td>{{ o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else '' }}</td>
+              <td>{{ o.name }}</td>
+              <td>{{ o.college_reg_no }}</td>
+              <td>{{ o.phone }}</td>
+              <td>{{ o.type }}</td>
+              <td><span class="badge bg-secondary">{{ o.status }}</span></td>
+              <td>
+                {% if o.time_slot %}
+                  {{ o.time_slot.day_of_week }} {{ o.time_slot.start_time }} - {{ o.time_slot.end_time }}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">No orders yet.</div>
+  {% endif %}
+
+  <h3 class="mb-3">Manage Time Slots</h3>
+  <div class="row g-4">
+    <div class="col-md-5">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Add New Slot</h5>
+          <form method="post">
+            <input type="hidden" name="action" value="create_slot" />
+            <div class="mb-3">
+              <label class="form-label">Day of Week</label>
+              <select name="day_of_week" class="form-select" required>
+                {% for d in ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
+                  <option value="{{ d }}">{{ d }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Start Time</label>
+              <input type="text" name="start_time" class="form-control" placeholder="10:00 AM" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">End Time</label>
+              <input type="text" name="end_time" class="form-control" placeholder="11:00 AM" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Max Capacity</label>
+              <input type="number" name="max_capacity" class="form-control" min="1" value="20" required />
+            </div>
+            <button type="submit" class="btn btn-success">Create Slot</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Existing Slots</h5>
+          {% if slots and slots|length %}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Capacity</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for s in slots %}
+                    <tr>
+                      <td>{{ s.id }}</td>
+                      <td>{{ s.day_of_week }}</td>
+                      <td>{{ s.start_time }} - {{ s.end_time }}</td>
+                      <td>{{ s.max_capacity }}</td>
+                      <td>
+                        <form method="post" class="d-inline">
+                          <input type="hidden" name="action" value="delete_slot" />
+                          <input type="hidden" name="slot_id" value="{{ s.id }}" />
+                          <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="alert alert-secondary">No slots yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-warning">Partner profile not found.</div>
+{% endif %}
+{% endblock %}

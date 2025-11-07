@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Request Password Reset | CDO{% endblock %}
+{% block content %}
+<h2 class="mb-3">Request Password Reset</h2>
+<p>Enter your account email and we will send you a password reset link.</p>
+<form method="post" class="col-md-6">
+  {{ form.hidden_tag() }}
+  <div class="mb-3">
+    {{ form.email.label(class_='form-label') }}
+    {{ form.email(class_='form-control', placeholder='you@example.com') }}
+    {% for e in form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <button type="submit" class="btn btn-primary">Send Reset Email</button>
+</form>
+{% endblock %}

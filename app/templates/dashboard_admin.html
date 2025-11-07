@@ -1,0 +1,96 @@
+﻿{% extends 'base.html' %}
+{% block title %}Admin Dashboard | CDO{% endblock %}
+{% block content %}
+<h2 class="mb-3">Users</h2>
+<div class="table-responsive mb-4">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td>{{ u.username }}</td>
+          <td>
+            <form method="post" class="d-flex align-items-center gap-2">
+              <input type="hidden" name="action" value="set_role" />
+              <input type="hidden" name="user_id" value="{{ u.id }}" />
+              <select name="role" class="form-select form-select-sm" style="width:auto">
+                {% for r in ['user','partner','admin'] %}
+                  <option value="{{ r }}" {% if u.role==r %}selected{% endif %}>{{ r|capitalize }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+            </form>
+          </td>
+          <td>
+            <form method="post" onsubmit="return confirm('Delete user {{ u.username }}?')">
+              <input type="hidden" name="action" value="delete_user" />
+              <input type="hidden" name="user_id" value="{{ u.id }}" />
+              <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="mb-3">Partners</h2>
+<div class="table-responsive mb-4">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Platform</th>
+        <th>Contact Email</th>
+        <th>Login Username</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in partners %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td>{{ p.platform_name }}</td>
+          <td>{{ p.contact_email or '' }}</td>
+          <td>{{ p.user.username if p.user }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="mb-3">Create New Partner</h2>
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <input type="hidden" name="action" value="create_partner" />
+      <div class="col-md-4">
+        <label class="form-label">Platform Name</label>
+        <input type="text" name="platform_name" class="form-control" placeholder="Amazon" required />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Contact Email</label>
+        <input type="email" name="contact_email" class="form-control" placeholder="manager@example.com" />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Login Username</label>
+        <input type="text" name="username" class="form-control" placeholder="amazon_manager" required />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Login Password</label>
+        <input type="password" name="password" class="form-control" required />
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-success">Create Partner</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

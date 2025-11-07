@@ -1,0 +1,159 @@
+﻿{% extends "base.html" %}
+{% block content %}
+    <h2>Create a New Order</h2>
+    <p>Please select a partner and time slot for your pickup or return.</p>
+
+    <!-- We'll use WTForms for this eventually, but this shows the concept -->
+    <form method="POST" action="{{ url_for('main.order_new') }}"> <!-- We'll build the POST logic later -->
+        
+        <!-- STEP 1: Select Partner -->
+        <div class="mb-3">
+            <label for="partnerSelect" class="form-label"><b>Step 1: Select a Partner</b></label>
+            <select class="form-select" id="partnerSelect" name="partner_id">
+                <option selected disabled>Choose a delivery partner...</option>
+                {% for partner in partners %}
+                    <option value="{{ partner.id }}">{{ partner.platform_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- STEP 2: Select Time Slot (This will be populated by JavaScript) -->
+        <div class="mb-3">
+            <label class="form-label"><b>Step 2: Select a Time Slot for Today</b></label>
+            <div id="timeSlotContainer" class="list-group">
+                <!-- JavaScript will inject slots here -->
+                <div class="list-group-item text-muted" id="slotPlaceholder">
+                    Please select a partner first.
+                </div>
+            </div>
+            <!-- This hidden input will store the chosen slot ID -->
+            <input type="hidden" id="time_slot_id" name="time_slot_id">
+        </div>
+
+        <!-- STEP 3: Order Details (Will be hidden until a slot is chosen) -->
+        <div id="orderDetails" class="content-section" style="display: none;">
+            <p>You selected: <b id="selectedSlotText"></b></p>
+            <hr>
+            
+            <div class="mb-3">
+                <label for="orderType" class="form-label"><b>Order Type</b></label>
+                <select class="form-select" id="orderType" name="type">
+                    <option value="Pickup">Pickup (You are receiving a package)</option>
+                    <option value="Return">Return (You are sending a package)</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="order_id_text" class="form-label"><b>Order ID / Tracking Number</b></label>
+                <input type="text" class="form-control" id="order_id_text" name="order_id_text" required>
+            </div>
+            <div class="mb-3">
+                <label for="name" class="form-label"><b>Full Name</b></label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ current_user.username }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="college_reg_no" class="form-label"><b>College Registration No.</b></label>
+                <input type="text" class="form-control" id="college_reg_no" name="college_reg_no" required>
+            </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label"><b>Phone Number</b></label>
+                <input type="tel" class="form-control" id="phone" name="phone" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Book Slot</button>
+        </div>
+    </form>
+
+
+    <!-- This JavaScript is the "High Class" part -->
+    <script>
+        // Wait for the document to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const partnerSelect = document.getElementById('partnerSelect');
+            const slotContainer = document.getElementById('timeSlotContainer');
+            const slotPlaceholder = document.getElementById('slotPlaceholder');
+            const orderDetails = document.getElementById('orderDetails');
+            const hiddenSlotInput = document.getElementById('time_slot_id');
+            const selectedSlotText = document.getElementById('selectedSlotText');
+
+            // Listen for a change on the "Partner" dropdown
+            partnerSelect.addEventListener('change', function() {
+                const partnerId = this.value;
+                
+                // 1. Clear old slots and show a loading message
+                slotContainer.innerHTML = ''; // Clear existing slots
+                let loadingItem = document.createElement('div');
+                loadingItem.classList.add('list-group-item', 'text-muted');
+                loadingItem.textContent = 'Loading available slots...';
+                slotContainer.appendChild(loadingItem);
+                
+                // Hide the order details form
+                orderDetails.style.display = 'none';
+
+                // 2. This is the "high class" part: Fetch data from our API
+                fetch(`/api/get_slots/${partnerId}`)
+                    .then(response => {
+                        // Check if the network response is ok
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        // Parse the JSON data from the response
+                        return response.json();
+                    })
+                    .then(slots => {
+                        // 3. We have the data! Now build the HTML for the slots
+                        slotContainer.innerHTML = ''; // Clear the "loading" message
+                        
+                        if (slots.length === 0) {
+                            slotPlaceholder.textContent = 'No available slots for this partner today.';
+                            slotContainer.appendChild(slotPlaceholder);
+                            return;
+                        }
+
+                        // Create a clickable button for each slot
+                        slots.forEach(slot => {
+                            let slotButton = document.createElement('a');
+                            slotButton.href = '#';
+                            slotButton.classList.add('list-group-item', 'list-group-item-action');
+                            slotButton.textContent = `${slot.start_time} - ${slot.end_time} (Available: ${slot.available_capacity})`;
+                            
+                            // Store the slot ID on the button itself
+                            slotButton.dataset.slotId = slot.id; 
+                            slotButton.dataset.slotText = `${slot.start_time} - ${slot.end_time}`;
+
+                            slotButton.addEventListener('click', function(e) {
+                                e.preventDefault(); // Stop the link from navigating
+                                
+                                // Remove 'active' class from any other selected slot
+                                document.querySelectorAll('#timeSlotContainer .list-group-item-action').forEach(btn => {
+                                    btn.classList.remove('active');
+                                });
+                                
+                                // Make this button 'active'
+                                this.classList.add('active');
+
+                                // 4. A slot is selected!
+                                // Store the ID in our hidden form input
+                                hiddenSlotInput.value = this.dataset.slotId;
+                                
+                                // Show the slot text in the order form
+                                selectedSlotText.textContent = `${partnerSelect.options[partnerSelect.selectedIndex].text} @ ${this.dataset.slotText}`;
+                                
+                                // Show the final order details form
+                                orderDetails.style.display = 'block';
+                            });
+                            
+                            slotContainer.appendChild(slotButton);
+                        });
+                    })
+                    .catch(error => {
+                        // Handle any errors (e.g., server down, partner has no slots)
+                        console.error('Error fetching time slots:', error);
+                        slotContainer.innerHTML = '';
+                        slotPlaceholder.textContent = 'Could not load slots. Please try again later.';
+                        slotContainer.appendChild(slotPlaceholder);
+                    });
+            });
+        });
+    </script>
+{% endblock content %}
