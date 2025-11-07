@@ -34,7 +34,7 @@
               <li class="nav-item"><span class="navbar-text me-3">{{ current_user.username }}</span></li>
               <li class="nav-item"><a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a></li>
             {% else %}
-              <li class="nav-item"><a class="nav-link" href="{{ url_for('main.login') }}">Login</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('main.signin') }}">Sign In</a></li>
               <li class="nav-item"><a class="nav-link" href="{{ url_for('main.signup') }}">Sign Up</a></li>
             {% endif %}
           </ul>

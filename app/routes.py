@@ -4,7 +4,7 @@ from flask_mail import Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import login_manager, db, mail
 from .models import User, Partner, TimeSlot, Order
-from .forms import RegistrationForm, LoginForm, RequestResetForm, ResetPasswordForm
+from .forms import RegistrationForm, LoginForm, RequestResetForm, ResetPasswordForm, ChangePasswordForm
 from datetime import datetime
 
 bp = Blueprint('main', __name__)
@@ -16,21 +16,38 @@ def load_user(user_id):
 
 
 # -------------------- Authentication --------------------
-@bp.route('/login', methods=['GET', 'POST'])
-def login():
+@bp.route('/')
+def home():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    return render_template('home.html')
+
+
+@bp.route('/signin', methods=['GET', 'POST'])
+def signin():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data.lower()).first()
         if not user or not check_password_hash(user.password_hash, form.password.data):
             flash('Invalid email or password', 'warning')
-            return render_template('login.html', login_form=form, signup_form=RegistrationForm())
+            return render_template('signin.html', form=form)
         login_user(user, remember=form.remember.data)
         return redirect(url_for('main.dashboard'))
-    return render_template('login.html', login_form=form, signup_form=RegistrationForm())
+    return render_template('signin.html', form=form)
+
+
+# Keep old /login route for backwards compatibility
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+    return redirect(url_for('main.signin'))
 
 
 @bp.route('/signup', methods=['GET', 'POST'])
 def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(
@@ -45,63 +62,45 @@ def signup():
             partner = Partner(platform_name=form.username.data.strip(), contact_email=form.email.data.lower(), user_id=user.id)
             db.session.add(partner)
         db.session.commit()
-        flash('Account created. Please log in.', 'success')
-        return redirect(url_for('main.login'))
-    return render_template('login.html', login_form=LoginForm(), signup_form=form)
+        flash('Account created. Please sign in.', 'success')
+        return redirect(url_for('main.signin'))
+    return render_template('signup.html', form=form)
 
 
 @bp.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('main.login'))
+    return redirect(url_for('main.home'))
 
 
-# Password reset
-def send_reset_email(user: User):
-    token = user.get_reset_token()
-    reset_url = url_for('main.reset_token', token=token, _external=True)
-    msg = Message('Password Reset Request', recipients=[user.email])
-    msg.body = f"To reset your password, visit the following link: {reset_url}\n\nIf you did not make this request then simply ignore this email."
-    mail.send(msg)
-
-
-@bp.route('/reset_password', methods=['GET', 'POST'])
-def reset_request():
+# Password change (replaces forgot password)
+@bp.route('/change_password', methods=['GET', 'POST'])
+def change_password():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
-    form = RequestResetForm()
+    form = ChangePasswordForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data.lower()).first()
-        if user and user.email:
-            send_reset_email(user)
-            flash('An email has been sent with instructions to reset your password.', 'success')
-            return redirect(url_for('main.login'))
-        flash('No account found with that email.', 'warning')
-    return render_template('reset_request.html', form=form)
-
-
-@bp.route('/reset_password/<token>', methods=['GET', 'POST'])
-def reset_token(token):
-    if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
-    user = User.verify_reset_token(token)
-    if user is None:
-        flash('That is an invalid or expired token', 'warning')
-        return redirect(url_for('main.reset_request'))
-    form = ResetPasswordForm()
-    if form.validate_on_submit():
-        user.password_hash = generate_password_hash(form.password.data)
+        user = User.query.filter_by(username=form.username.data.strip()).first()
+        if not user:
+            flash('Invalid username, email, or password', 'warning')
+            return render_template('change_password.html', form=form)
+        if user.email.lower() != form.email.data.lower():
+            flash('Invalid username, email, or password', 'warning')
+            return render_template('change_password.html', form=form)
+        if not check_password_hash(user.password_hash, form.old_password.data):
+            flash('Invalid username, email, or password', 'warning')
+            return render_template('change_password.html', form=form)
+        user.password_hash = generate_password_hash(form.new_password.data)
         db.session.commit()
-        flash('Your password has been updated! You can now log in.', 'success')
-        return redirect(url_for('main.login'))
-    return render_template('reset_token.html', form=form)
+        flash('Your password has been updated! You can now sign in.', 'success')
+        return redirect(url_for('main.signin'))
+    return render_template('change_password.html', form=form)
 
 
 
 
 # -------------------- Main / User --------------------
-@bp.route('/')
 @bp.route('/dashboard')
 @login_required
 def dashboard():

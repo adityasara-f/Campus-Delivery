@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Sign In | CDO{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <h3 class="card-title text-center mb-4">Sign In</h3>
+        <form method="post" action="{{ url_for('main.signin') }}">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.email.label(class_='form-label') }}
+            {{ form.email(class_='form-control', placeholder='you@example.com') }}
+            {% for e in form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.password.label(class_='form-label') }}
+            {{ form.password(class_='form-control') }}
+            {% for e in form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="form-check mb-3">
+            {{ form.remember(class_='form-check-input', id='rememberMe') }}
+            <label class="form-check-label" for="rememberMe">Remember me</label>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mb-3">Sign In</button>
+        </form>
+        <div class="text-center">
+          <p class="mb-2">New user? <a href="{{ url_for('main.signup') }}">Sign up</a></p>
+          <p class="mb-0"><a href="{{ url_for('main.change_password') }}">Reset Password</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
